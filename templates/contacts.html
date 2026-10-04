@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+    <section id="contact-info" class="col-12 col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="section-title">Контактні дані</h2>
+                <ul class="list-unstyled mb-0">
+                    {% for c in contacts %}
+                    <li class="{{ 'mb-2' if not loop.last else '' }}">
+                        <strong>{{ c.label }}:</strong>
+                        {% if c.href %}
+                        <a href="{{ c.href }}" {% if c.href.startswith('http') %} target="_blank" rel="noopener" {%
+                            endif %}>{{ c.value }}</a>
+                        {% else %}
+                        {{ c.value }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact-form" class="col-12 col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="section-title">Надіслати повідомлення</h2>
+                <form method="post" action="{{ url_for('contacts') }}" novalidate>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Ім'я</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Ваше ім'я" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Повідомлення</label>
+                        <textarea class="form-control" id="message" name="message" rows="5"
+                            placeholder="Ваше повідомлення..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Надіслати</button>
+                </form>
+                <p class="text-muted small mt-3 mb-0">Форма поки що є заглушкою: повідомлення нікуди не відправляються.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
