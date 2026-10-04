@@ -1,0 +1,104 @@
+:root {
+    --accent: #3b5bdb;
+    --accent-dark: #2c45b0;
+    --tag-bg: #e7ecff;
+    --page-bg: #f4f6fb;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background-color: var(--page-bg);
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+.app-navbar {
+    background-color: var(--accent-dark);
+}
+
+.app-navbar .nav-link {
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+
+.page-header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+}
+
+section[id] {
+    scroll-margin-top: 80px;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.section-title {
+    font-size: 1.35rem;
+    color: var(--accent-dark);
+    margin-bottom: 1rem;
+}
+
+.avatar {
+    border: 4px solid #fff;
+    box-shadow: 0 0 0 2px var(--tag-bg);
+    max-width: 180px;
+}
+
+.tag {
+    background-color: var(--tag-bg);
+    color: var(--accent-dark);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.5em 0.9em;
+}
+
+.group-title {
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.project-card {
+    border-color: var(--tag-bg);
+}
+
+.project-card:hover {
+    border-color: var(--accent);
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--accent);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-bg: var(--accent-dark);
+    --bs-btn-hover-border-color: var(--accent-dark);
+}
+
+.form-control:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(59, 91, 219, 0.2);
+}
+
+a {
+    color: var(--accent);
+}
+
+.site-footer {
+    background-color: #1f2937;
+    color: #d1d5db;
+}
+
+@media (max-width: 575.98px) {
+    .section-title {
+        font-size: 1.2rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+}
