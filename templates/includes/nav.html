@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top app-navbar" aria-label="Головне меню">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('resume') }}">{{ owner_name }}</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
+            aria-controls="mainMenu" aria-expanded="false" aria-label="Відкрити меню">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainMenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='about') }}">Про себе</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='education') }}">Освіта</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='skills') }}">Навички</a>
+                </li>
+                <li class="nav-item"><a class="nav-link"
+                        href="{{ url_for('resume', _anchor='technologies') }}">Технології</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='experience') }}">Досвід</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'contacts' else '' }}" {% if
+                        request.endpoint=='contacts' %}aria-current="page" {% endif %}
+                        href="{{ url_for('contacts') }}">Контакти</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
