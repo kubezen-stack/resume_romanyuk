@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% macro tag_groups(groups) %}
+{% for g in groups %}
+<h3 class="h6 group-title">{{ g.group }}</h3>
+<ul class="list-unstyled d-flex flex-wrap gap-2 mb-3">
+    {% for item in g.tags %}
+    <li><span class="badge rounded-pill tag">{{ item }}</span></li>
+    {% endfor %}
+</ul>
+{% endfor %}
+{% endmacro %}
+
+{% block content %}
+<section id="about" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center g-4">
+            <div class="col-12 col-md-4 text-center">
+                <img src="{{ url_for('static', filename='images/avatar.svg') }}" alt="Фото: {{ owner_name }}"
+                    class="img-fluid rounded-circle avatar" width="180" height="180">
+            </div>
+            <div class="col-12 col-md-8">
+                <h2 class="section-title">Про себе</h2>
+                <p class="fw-semibold mb-2">{{ resume.role }}</p>
+                <p class="mb-0">{{ resume.about }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="education" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="section-title">Освіта</h2>
+        <ul class="list-unstyled mb-0">
+            {% for edu in resume.education %}
+            <li class="{{ 'mb-3' if not loop.last else '' }}">
+                <strong>{{ edu.title }}</strong><br>
+                <span class="text-muted small">
+                    {% if edu.place %}{{ edu.place }}, {% endif %}{{ edu.period }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section id="skills" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="section-title">Навички</h2>
+        {{ tag_groups(resume.skills) }}
+    </div>
+</section>
+
+<section id="technologies" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="section-title">Технології</h2>
+        {{ tag_groups(resume.technologies) }}
+    </div>
+</section>
+
+<section id="experience" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="section-title">Досвід роботи та проєкти</h2>
+        <div class="row g-3">
+            {% for project in resume.projects %}
+            <article class="col-12 col-lg-4">
+                <div class="card h-100 project-card">
+                    <div class="card-body">
+                        <h3 class="h6">{{ project.title }}</h3>
+                        <p class="text-muted small mb-2">{{ project.period }}</p>
+                        <ul class="ps-3 mb-0">
+                            {% for point in project.points %}
+                            <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
