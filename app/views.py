@@ -1,8 +1,8 @@
 from datetime import datetime
-from flask import Flask, flash, redirect, render_template, request, url_for
 
-app = Flask(__name__)
-app.secret_key = "d7e19042160471160caea8bc50fc5e1adad918417ae2007c6c88118a82147b43"
+from flask import flash, redirect, render_template, request, url_for
+
+from . import app
 
 OWNER_NAME = "Максим Романюк"
 
@@ -127,5 +127,7 @@ def contacts():
     return render_template("contacts.html", title="Контакти", contacts=CONTACTS)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/homepage")
+def home():
+    agent = request.user_agent
+    return render_template("homepage.html", title="Home", agent=agent)
