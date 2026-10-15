@@ -19,6 +19,8 @@
                 </li>
                 <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint == 'users' else '' }}"
                         href="{{ url_for('users.greetings', name='John', age=30) }}">Користувачі</a></li>
+                <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint == 'products' else '' }}"
+                        href="{{ url_for('products.products') }}">Товари</a></li>
                 <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.endpoint == 'contacts' else '' }}" {% if
                         request.endpoint=='contacts' %}aria-current="page" {% endif %}
