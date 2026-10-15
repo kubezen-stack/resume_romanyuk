@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<nav class="side-menu card shadow-sm" aria-label="Меню користувачів">
+    <ul class="nav flex-column p-2">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('users.greetings', name='John', age=30) }}">Greet John</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('users.admin') }}">Admin</a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="display-5">Hello :)</h2>
+        <h3>User: {{ name }}</h3>
+        {% if age %}
+        <p class="text-success fs-5">Age: {{ age }}</p>
+        {% else %}
+        <p class="text-danger fs-5">Age: Not provided</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

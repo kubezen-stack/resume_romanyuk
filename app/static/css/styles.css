@@ -102,3 +102,16 @@ a {
         font-size: 1.5rem;
     }
 }
+
+.side-menu {
+    min-width: 200px;
+    align-self: flex-start;
+}
+
+.side-menu .nav-link {
+    color: #333;
+}
+
+.side-menu .nav-link:hover {
+    background: #e9ecef;
+}
