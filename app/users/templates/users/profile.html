@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-3 p-md-4 rounded">
+
+    <div class="alert alert-primary">
+        <h2 class="h4 mb-1">Ласкаво просимо до сторінки Інфо, {{ username }}!</h2>
+        <p class="mb-0">Тут ви можете отримати інформацію та вийти з системи.</p>
+    </div>
+
+    <form method="post" action="{{ url_for('users.logout') }}" class="mb-4">
+        <button type="submit" class="btn btn-danger">Вийти</button>
+    </form>
+</div>
+{% endblock %}

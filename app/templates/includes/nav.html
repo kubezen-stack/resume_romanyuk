@@ -7,24 +7,43 @@
         </button>
         <div class="collapse navbar-collapse" id="mainMenu">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='about') }}">Про себе</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='education') }}">Освіта</a>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='skills') }}">Навички</a>
-                </li>
-                <li class="nav-item"><a class="nav-link"
-                        href="{{ url_for('resume', _anchor='technologies') }}">Технології</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('resume', _anchor='experience') }}">Досвід</a>
-                </li>
-                <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint == 'users' else '' }}"
-                        href="{{ url_for('users.greetings', name='John', age=30) }}">Користувачі</a></li>
-                <li class="nav-item"><a class="nav-link {{ 'active' if request.blueprint == 'products' else '' }}"
-                        href="{{ url_for('products.products') }}">Товари</a></li>
                 <li class="nav-item">
-                    <a class="nav-link {{ 'active' if request.endpoint == 'contacts' else '' }}" {% if
-                        request.endpoint=='contacts' %}aria-current="page" {% endif %}
+                    <a class="nav-link {{ 'active' if request.endpoint == 'home' else '' }}"
+                        href="{{ url_for('home') }}">Головна</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint == 'resume' else '' }}" href="#"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">Резюме</a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('resume') }}">Уся сторінка</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('resume', _anchor='about') }}">Про себе</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('resume', _anchor='education') }}">Освіта</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('resume', _anchor='skills') }}">Навички</a></li>
+                        <li><a class="dropdown-item"
+                                href="{{ url_for('resume', _anchor='technologies') }}">Технології</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('resume', _anchor='experience') }}">Досвід</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'users.greetings' else '' }}"
+                        href="{{ url_for('users.greetings', name='John', age=30) }}">Користувачі</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.blueprint == 'products' else '' }}"
+                        href="{{ url_for('products.products') }}">Товари</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'contacts' else '' }}"
                         href="{{ url_for('contacts') }}">Контакти</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'users.profile' else '' }}"
+                        href="{{ url_for('users.profile') }}">Профіль</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'users.login' else '' }}"
+                        href="{{ url_for('users.login') }}">Вхід</a>
                 </li>
             </ul>
         </div>
