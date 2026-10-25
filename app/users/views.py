@@ -2,12 +2,14 @@ import hmac
 import re
 from functools import wraps
 
-from flask import flash, make_response, redirect, render_template, request, session, url_for
+from flask import abort, flash, make_response, redirect, render_template, request, session, url_for
 from . import users_bp
 
 VALID_USERS = {"admin": "admin123"}
 
 COOKIE_KEY_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
+THEMES = ("light", "dark")
+THEME_COOKIE = "theme"
 PROTECTED_COOKIES = ("session",)
 
 def login_required(view):
@@ -55,10 +57,14 @@ def login():
 @users_bp.route("/profile")
 @login_required
 def profile():
+    theme = request.cookies.get(THEME_COOKIE, "light")
+    if theme not in THEMES:
+        theme = "light"
     return render_template(
         "users/profile.html",
         title="Профіль",
         username=session["user"],
+        theme=theme,
         cookies=request.cookies.items(),
     )
 
@@ -125,4 +131,14 @@ def delete_all_cookies():
             response.delete_cookie(key)
             removed += 1
     flash(f"Видалено кукі: {removed}.", "success" if removed else "warning")
+    return response
+
+@users_bp.route("/theme/<string:scheme>")
+@login_required
+def set_theme(scheme):
+    if scheme not in THEMES:
+        abort(404)
+    response = make_response(redirect(url_for("users.profile")))
+    response.set_cookie(THEME_COOKIE, scheme, max_age=60 * 60 * 24 * 365)
+    flash(f"Кольорову схему змінено: {'темна' if scheme == 'dark' else 'світла'}.", "success")
     return response

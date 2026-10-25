@@ -115,3 +115,24 @@ a {
 .side-menu .nav-link:hover {
     background: #e9ecef;
 }
+
+.theme-panel {
+    transition: background-color .2s, color .2s;
+}
+
+.theme-panel.theme-light {
+    background: #ffffff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+}
+
+.theme-panel.theme-dark {
+    background: #1e2227;
+    color: #e9ecef;
+    border: 1px solid #343a40;
+}
+
+.theme-panel .cookie-table td,
+.theme-panel .cookie-table th {
+    word-break: break-all;
+}
