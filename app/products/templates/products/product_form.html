@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% from "macros/forms.html" import render_field, render_submit %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="section-title">{{ title }}</h2>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+            {{ render_field(form.name, placeholder="Назва товару") }}
+            {{ render_field(form.content, rows=5, cols=40, placeholder="Опис товару") }}
+            <div class="row">
+                <div class="col-md-4">{{ render_field(form.price, placeholder="0.00", inputmode="decimal") }}</div>
+                <div class="col-md-4">{{ render_field(form.category) }}</div>
+                <div class="col-md-4">{{ render_field(form.quantity, min=0, step=1) }}</div>
+            </div>
+            {% if product %}
+            <div class="mb-2">
+                <div class="form-label">Поточне зображення</div>
+                <img src="{{ image_url(product) }}" alt="{{ product.name }}" class="img-thumbnail" style="max-height: 150px;">
+            </div>
+            {% endif %}
+            {{ render_field(form.image, accept=".png,.jpg,.jpeg") }}
+            <div class="form-text mb-3">PNG, JPG або JPEG, до 2 МБ. {% if product %}Залиште поле порожнім, щоб зберегти поточне зображення.{% else %}Поле необов'язкове.{% endif %}</div>
+            {{ render_submit(form.submit) }}
+            <a class="btn btn-outline-secondary" href="{{ url_for('products.products') }}">Скасувати</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
