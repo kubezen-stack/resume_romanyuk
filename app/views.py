@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import flash, redirect, render_template, request, url_for
+from werkzeug.exceptions import NotFound
 
 from . import app
 from .contact_log import log_contact
@@ -145,3 +146,8 @@ def contacts():
 def home():
     agent = request.user_agent
     return render_template("homepage.html", title="Home", agent=agent)
+
+@app.errorhandler(404)
+def not_found(error):
+    message = error.description if error.description != NotFound.description else None
+    return render_template("errors/404.html", title="Не знайдено", message=message), 404
