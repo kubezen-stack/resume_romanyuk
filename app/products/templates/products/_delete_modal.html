@@ -1,0 +1,18 @@
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content" id="deleteForm">
+            {{ delete_form.hidden_tag() }}
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="deleteModalLabel">Підтвердження видалення</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+            </div>
+            <div class="modal-body">
+                Ви дійсно хочете видалити товар «<strong id="deleteProductName"></strong>»? Цю дію не можна скасувати.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="submit" class="btn btn-danger">Видалити</button>
+            </div>
+        </form>
+    </div>
+</div>
