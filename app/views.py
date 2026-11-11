@@ -3,6 +3,8 @@ from datetime import datetime
 from flask import flash, redirect, render_template, request, url_for
 
 from . import app
+from .contact_log import log_contact
+from .forms import ContactForm
 
 OWNER_NAME = "Максим Романюк"
 
@@ -113,18 +115,30 @@ def resume():
 
 @app.route("/contacts", methods=["GET", "POST"])
 def contacts():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        message = request.form.get("message", "").strip()
+    form = ContactForm()
 
-        if not (name and email and message):
-            flash("Будь ласка, заповніть усі поля форми.", "error")
+    if form.validate_on_submit():
+        entry = {
+            "name": form.name.data,
+            "email": form.email.data,
+            "topic": dict(form.topic.choices).get(form.topic.data, form.topic.data),
+            "message": form.message.data,
+        }
+        try:
+            log_contact(app.config["CONTACT_LOG_FILE"], entry)
+        except OSError:
+            app.logger.exception("Не вдалося записати повідомлення з контактної форми")
+            flash("Не вдалося зберегти повідомлення. Спробуйте пізніше.", "error")
         else:
-            flash(f"Дякуємо, {name}! Повідомлення прийнято (заглушка, реальної відправки немає).", "success")
+            flash(f"Дякуємо, {entry['name']}! Ваше повідомлення надіслано і збережено.", "success")
             return redirect(url_for("contacts"))
+    elif request.method == "POST":
+        if "csrf_token" in form.errors:
+            flash("Сесія форми застаріла або недійсна. Оновіть сторінку й спробуйте ще раз.", "error")
+        else:
+            flash("Повідомлення не надіслано: виправте помилки у формі.", "error")
 
-    return render_template("contacts.html", title="Контакти", contacts=CONTACTS)
+    return render_template("contacts.html", title="Контакти", contacts=CONTACTS, form=form)
 
 
 @app.route("/homepage")

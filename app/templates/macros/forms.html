@@ -1,0 +1,23 @@
+{% macro render_field(field, placeholder='') %}
+{% set base = 'form-select' if field.type == 'SelectField' else 'form-control' %}
+{% set css = base ~ (' is-invalid' if field.errors else '') %}
+<div class="mb-3">
+    {{ field.label(class="form-label") }}
+    {% if placeholder and field.type != 'SelectField' %}
+    {{ field(class=css, placeholder=placeholder, **kwargs) }}
+    {% else %}
+    {{ field(class=css, **kwargs) }}
+    {% endif %}
+    {% if field.errors %}
+    <div class="invalid-feedback d-block">
+        {% for error in field.errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_submit(field) %}
+{{ field(class="btn btn-primary") }}
+{% endmacro %}
