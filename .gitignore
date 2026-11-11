@@ -3,3 +3,6 @@ venv/
 __pycache__/
 *.pyc
 logs/
+data/products.json
+app/products/static/uploads/*
+!app/products/static/uploads/.gitkeep
