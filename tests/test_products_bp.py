@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from app import app
+from app import create_app
 from app.products import db
 
 
@@ -10,17 +10,13 @@ class ProductsBlueprintTestCase(unittest.TestCase):
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self._old = app.config.get("PRODUCTS_DB_FILE")
-        app.config.update(
-            TESTING=True,
-            PRODUCTS_DB_FILE=os.path.join(self.tmp.name, "products.json"),
-        )
-        self.client = app.test_client()
-        with app.app_context():
+        self.app = create_app("testing")
+        self.app.config.update(PRODUCTS_DB_FILE=os.path.join(self.tmp.name, "products.json"))
+        self.client = self.app.test_client()
+        with self.app.app_context():
             db.seed()
 
     def tearDown(self):
-        app.config["PRODUCTS_DB_FILE"] = self._old
         self.tmp.cleanup()
 
     def test_products_list(self):

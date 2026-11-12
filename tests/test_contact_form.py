@@ -4,7 +4,7 @@ import re
 import tempfile
 import unittest
 
-from app import app
+from app import create_app
 
 
 class ContactFormTestCase(unittest.TestCase):
@@ -12,9 +12,9 @@ class ContactFormTestCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.log_path = os.path.join(self.tmp.name, "logs", "contacts.log")
-        self._old = {k: app.config.get(k) for k in ("CONTACT_LOG_FILE", "WTF_CSRF_ENABLED", "TESTING")}
-        app.config.update(TESTING=True, WTF_CSRF_ENABLED=False, CONTACT_LOG_FILE=self.log_path)
-        self.client = app.test_client()
+        self.app = create_app("testing")
+        self.app.config.update(CONTACT_LOG_FILE=self.log_path)
+        self.client = self.app.test_client()
         self.valid = {
             "name": "Іван Петренко",
             "email": "ivan@example.com",
@@ -23,7 +23,6 @@ class ContactFormTestCase(unittest.TestCase):
         }
 
     def tearDown(self):
-        app.config.update(self._old)
         self.tmp.cleanup()
 
     def test_get_renders_form_fields(self):
@@ -76,14 +75,14 @@ class ContactFormTestCase(unittest.TestCase):
 
     def test_log_failure_shows_error_flash(self):
         # шлях до "файлу" вказує на існуючу директорію -> запис неможливий
-        app.config["CONTACT_LOG_FILE"] = self.tmp.name
+        self.app.config["CONTACT_LOG_FILE"] = self.tmp.name
         response = self.client.post("/contacts", data=self.valid)
         self.assertEqual(response.status_code, 200)
         self.assertIn("Не вдалося зберегти".encode(), response.data)
         self.assertIn(b"alert-danger", response.data)
 
     def test_csrf_protection(self):
-        app.config["WTF_CSRF_ENABLED"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = True
         response = self.client.post("/contacts", data=self.valid)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(os.path.exists(self.log_path))

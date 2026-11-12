@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from app import app
+from app import create_app
 from app.products import db
 
 
@@ -16,27 +16,21 @@ class ProductsBaseTestCase(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.db_path = os.path.join(self.tmp.name, "data", "products.json")
         self.upload_dir = os.path.join(self.tmp.name, "static", "uploads")
-        self._old = {
-            k: app.config.get(k)
-            for k in ("PRODUCTS_DB_FILE", "PRODUCT_UPLOAD_FOLDER", "WTF_CSRF_ENABLED", "TESTING", "MAX_IMAGE_SIZE")
-        }
-        app.config.update(
-            TESTING=True,
-            WTF_CSRF_ENABLED=False,
+        self.app = create_app("testing")
+        self.app.config.update(
             PRODUCTS_DB_FILE=self.db_path,
             PRODUCT_UPLOAD_FOLDER=self.upload_dir,
         )
-        self.client = app.test_client()
+        self.client = self.app.test_client()
 
     def tearDown(self):
-        app.config.update(self._old)
         self.tmp.cleanup()
 
     def make_product(self, **extra):
         data = {"name": "Laptop", "content": "Опис ноутбука", "price": 1200.0,
                 "category": "computers", "quantity": 5, "image": ""}
         data.update(extra)
-        with app.app_context():
+        with self.app.app_context():
             return db.create_product(data)
 
 
@@ -75,7 +69,7 @@ class ProductsReadTestCase(ProductsBaseTestCase):
 
     def test_data_persists_between_connections(self):
         self.make_product(name="Persist")
-        with app.app_context():
+        with self.app.app_context():
             names = [p["name"] for p in db.list_products()]
         self.assertEqual(names, ["Persist"])
         self.assertTrue(os.path.exists(self.db_path))
@@ -101,7 +95,7 @@ class ProductsCreateTestCase(ProductsBaseTestCase):
         self.assertEqual(response.status_code, 302)  # Post/Redirect/Get
         self.assertTrue(response.headers["Location"].endswith("/product/1"))
 
-        with app.app_context():
+        with self.app.app_context():
             product = db.get_product(1)
         self.assertEqual(product["name"], "Phone")
         self.assertEqual(product["price"], 800.5)
@@ -115,7 +109,7 @@ class ProductsCreateTestCase(ProductsBaseTestCase):
 
     def test_price_accepts_comma(self):
         self.client.post("/product/add", data=self.valid_data(price="10,5"))
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.get_product(1)["price"], 10.5)
 
     def test_invalid_data_shows_errors_and_saves_nothing(self):
@@ -126,7 +120,7 @@ class ProductsCreateTestCase(ProductsBaseTestCase):
         self.assertIn(b"invalid-feedback", response.data)
         for text in ("від 3 до 100", "Вкажіть опис", "Ціна має бути додатною", "Оберіть категорію", "від'ємною"):
             self.assertIn(text.replace("'", "&#39;").encode(), response.data)
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.list_products(), [])
 
     def test_validation_rules(self):
@@ -140,7 +134,7 @@ class ProductsCreateTestCase(ProductsBaseTestCase):
             for value in values:
                 response = self.client.post("/product/add", data=self.valid_data(**{field: value}))
                 self.assertEqual(response.status_code, 200, f"{field}={value!r}")
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.list_products(), [])
 
     def test_zero_quantity_is_allowed(self):
@@ -150,10 +144,10 @@ class ProductsCreateTestCase(ProductsBaseTestCase):
     def test_csrf_protection(self):
         import re
 
-        app.config["WTF_CSRF_ENABLED"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = True
         response = self.client.post("/product/add", data=self.valid_data())
         self.assertEqual(response.status_code, 200)
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.list_products(), [])
 
         page = self.client.get("/product/add")
@@ -187,7 +181,7 @@ class ProductsImageUploadTestCase(ImageHelpers, ProductsBaseTestCase):
 
     def test_relative_path_stored_and_image_shown(self):
         self.post_with_image(PNG_BYTES, "a.png")
-        with app.app_context():
+        with self.app.app_context():
             image = db.get_product(1)["image"]
         self.assertRegex(image, r"^uploads/[0-9a-f]{32}\.png$")
         self.assertTrue(os.path.isfile(os.path.join(self.tmp.name, "static", image)))
@@ -202,7 +196,7 @@ class ProductsImageUploadTestCase(ImageHelpers, ProductsBaseTestCase):
             self.assertEqual(response.status_code, 200, name)
             self.assertIn("Дозволені лише формати".encode(), response.data)
         self.assertEqual(self.uploaded_files(), [])
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.list_products(), [])
 
     def test_fake_image_content_rejected(self):
@@ -212,19 +206,19 @@ class ProductsImageUploadTestCase(ImageHelpers, ProductsBaseTestCase):
         self.assertEqual(self.uploaded_files(), [])
 
     def test_too_large_file_rejected(self):
-        app.config["MAX_IMAGE_SIZE"] = 100
+        self.app.config["MAX_IMAGE_SIZE"] = 100
         response = self.post_with_image(PNG_BYTES + b"\x00" * 200, "big.png")
         self.assertEqual(response.status_code, 200)
         self.assertIn("завелике".encode(), response.data)
         self.assertEqual(self.uploaded_files(), [])
 
     def test_request_over_content_length_redirects_with_flash(self):
-        old = app.config["MAX_CONTENT_LENGTH"]
-        app.config["MAX_CONTENT_LENGTH"] = 200
+        old = self.app.config["MAX_CONTENT_LENGTH"]
+        self.app.config["MAX_CONTENT_LENGTH"] = 200
         try:
             response = self.post_with_image(PNG_BYTES + b"\x00" * 5000, "big.png")
         finally:
-            app.config["MAX_CONTENT_LENGTH"] = old
+            self.app.config["MAX_CONTENT_LENGTH"] = old
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.uploaded_files(), [])
 
@@ -260,7 +254,7 @@ class ProductsEditTestCase(ImageHelpers, ProductsBaseTestCase):
         response = self.client.post("/product/1/edit", data=self.edit_data())
         self.assertEqual(response.status_code, 302)  # PRG
         self.assertTrue(response.headers["Location"].endswith("/product/1"))
-        with app.app_context():
+        with self.app.app_context():
             product = db.get_product(1)
         self.assertEqual(product["name"], "Laptop Pro")
         self.assertEqual(product["price"], 1500.99)
@@ -275,26 +269,26 @@ class ProductsEditTestCase(ImageHelpers, ProductsBaseTestCase):
         response = self.client.post("/product/1/edit", data=self.edit_data(name="ab", price="0"))
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"invalid-feedback", response.data)
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.get_product(1)["name"], "Laptop")
 
     def test_edit_keeps_previous_image_when_no_file(self):
         self.post_with_image(PNG_BYTES, "a.png")
-        with app.app_context():
+        with self.app.app_context():
             old = db.get_product(1)["image"]
         self.client.post("/product/1/edit", data=self.edit_data())
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual(db.get_product(1)["image"], old)
         self.assertEqual(len(self.uploaded_files()), 1)
 
     def test_edit_replaces_image_and_removes_old_file(self):
         self.post_with_image(PNG_BYTES, "a.png")
-        with app.app_context():
+        with self.app.app_context():
             old = db.get_product(1)["image"]
         data = {**self.edit_data(), "image": (io.BytesIO(JPG_BYTES), "b.jpg")}
         response = self.client.post("/product/1/edit", data=data, content_type="multipart/form-data")
         self.assertEqual(response.status_code, 302)
-        with app.app_context():
+        with self.app.app_context():
             new = db.get_product(1)["image"]
         self.assertNotEqual(new, old)
         self.assertTrue(new.endswith(".jpg"))
@@ -316,7 +310,7 @@ class ProductsDeleteTestCase(ImageHelpers, ProductsBaseTestCase):
         response = self.client.post("/product/1/delete")
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.headers["Location"].endswith("/product"))
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual([p["name"] for p in db.list_products()], ["Other"])
         self.assertIn(b"alert-success", self.client.get("/product/").data)
         self.assertEqual(self.client.get("/product/1").status_code, 404)
@@ -330,7 +324,7 @@ class ProductsDeleteTestCase(ImageHelpers, ProductsBaseTestCase):
     def test_delete_only_via_post(self):
         self.make_product()
         self.assertEqual(self.client.get("/product/1/delete").status_code, 405)
-        with app.app_context():
+        with self.app.app_context():
             self.assertIsNotNone(db.get_product(1))
 
     def test_delete_not_found(self):
@@ -338,10 +332,10 @@ class ProductsDeleteTestCase(ImageHelpers, ProductsBaseTestCase):
 
     def test_delete_requires_csrf_token(self):
         self.make_product()
-        app.config["WTF_CSRF_ENABLED"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = True
         response = self.client.post("/product/1/delete")
         self.assertEqual(response.status_code, 302)
-        with app.app_context():
+        with self.app.app_context():
             self.assertIsNotNone(db.get_product(1))  # товар не видалено
 
     def test_confirmation_modal_present(self):
@@ -355,7 +349,7 @@ class ProductsDeleteTestCase(ImageHelpers, ProductsBaseTestCase):
         self.make_product(name="A")
         self.make_product(name="B")
         self.client.post("/product/1/delete")
-        with app.app_context():
+        with self.app.app_context():
             self.assertEqual([p["id"] for p in db.list_products()], [2])
 
 

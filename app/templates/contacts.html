@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros/forms.html" import render_field, render_submit %}
+{% from "macros/form_macros.html" import render_field, render_submit %}
 
 {% block content %}
 <div class="row g-4">
@@ -28,7 +28,7 @@
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h2 class="section-title">Надіслати повідомлення</h2>
-                <form method="post" action="{{ url_for('contacts') }}" novalidate>
+                <form method="post" action="{{ url_for('main.contacts') }}" novalidate>
                     {{ form.hidden_tag() }}
                     {{ render_field(form.name, placeholder="Ваше ім'я") }}
                     {{ render_field(form.email, placeholder="you@example.com") }}

@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask import flash, redirect, render_template, request, url_for
-from werkzeug.exceptions import NotFound
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 
-from . import app
 from .contact_log import log_contact
 from .forms import ContactForm
+
+main = Blueprint("main", __name__)
 
 OWNER_NAME = "Максим Романюк"
 
@@ -103,18 +103,18 @@ CONTACTS = [
 ]
 
 
-@app.context_processor
+@main.app_context_processor
 def inject_globals():
     return {"current_year": datetime.now().year, "owner_name": OWNER_NAME}
 
 
-@app.route("/")
-@app.route("/resume")
+@main.route("/")
+@main.route("/resume")
 def resume():
     return render_template("resume.html", title="Резюме", resume=RESUME)
 
 
-@app.route("/contacts", methods=["GET", "POST"])
+@main.route("/contacts", methods=["GET", "POST"])
 def contacts():
     form = ContactForm()
 
@@ -126,13 +126,13 @@ def contacts():
             "message": form.message.data,
         }
         try:
-            log_contact(app.config["CONTACT_LOG_FILE"], entry)
+            log_contact(current_app.config["CONTACT_LOG_FILE"], entry)
         except OSError:
-            app.logger.exception("Не вдалося записати повідомлення з контактної форми")
+            current_app.logger.exception("Не вдалося записати повідомлення з контактної форми")
             flash("Не вдалося зберегти повідомлення. Спробуйте пізніше.", "error")
         else:
             flash(f"Дякуємо, {entry['name']}! Ваше повідомлення надіслано і збережено.", "success")
-            return redirect(url_for("contacts"))
+            return redirect(url_for("main.contacts"))
     elif request.method == "POST":
         if "csrf_token" in form.errors:
             flash("Сесія форми застаріла або недійсна. Оновіть сторінку й спробуйте ще раз.", "error")
@@ -142,12 +142,7 @@ def contacts():
     return render_template("contacts.html", title="Контакти", contacts=CONTACTS, form=form)
 
 
-@app.route("/homepage")
+@main.route("/homepage")
 def home():
     agent = request.user_agent
     return render_template("homepage.html", title="Home", agent=agent)
-
-@app.errorhandler(404)
-def not_found(error):
-    message = error.description if error.description != NotFound.description else None
-    return render_template("errors/404.html", title="Не знайдено", message=message), 404
