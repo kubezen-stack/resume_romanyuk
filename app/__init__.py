@@ -19,6 +19,7 @@ def create_app(config_name="development"):
     migrate.init_app(app, db)
 
     from .products import db as products_db
+    from .posts import post_bp
     from .products import products_bp
     from .users import users_bp
     from .views import main
@@ -26,6 +27,7 @@ def create_app(config_name="development"):
     app.register_blueprint(main)
     app.register_blueprint(users_bp)
     app.register_blueprint(products_bp)
+    app.register_blueprint(post_bp, url_prefix="/post")
 
     products_db.init_db(app.config["PRODUCTS_DB_FILE"])
 
