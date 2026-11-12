@@ -6,3 +6,5 @@ logs/
 data/products.json
 app/products/static/uploads/*
 !app/products/static/uploads/.gitkeep
+.env
+instance/
