@@ -32,7 +32,8 @@
                     {{ form.hidden_tag() }}
                     {{ render_field(form.name, placeholder="Ваше ім'я") }}
                     {{ render_field(form.email, placeholder="you@example.com") }}
-                    {{ render_field(form.topic) }}
+                    {{ render_field(form.phone, placeholder="+380XXXXXXXXX") }}
+                    {{ render_field(form.subject) }}
                     {{ render_field(form.message, rows=5, placeholder="Ваше повідомлення...") }}
                     {{ render_submit(form.submit) }}
                 </form>

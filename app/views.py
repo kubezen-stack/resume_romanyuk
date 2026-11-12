@@ -122,7 +122,8 @@ def contacts():
         entry = {
             "name": form.name.data,
             "email": form.email.data,
-            "topic": dict(form.topic.choices).get(form.topic.data, form.topic.data),
+            "phone": form.phone.data,
+            "subject": dict(form.subject.choices).get(form.subject.data, form.subject.data),
             "message": form.message.data,
         }
         try:

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import EmailField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length
+from wtforms.validators import DataRequired, Email, Length, Regexp
 
 
 def _strip(value):
@@ -22,7 +22,7 @@ class ContactForm(FlaskForm):
         filters=[_strip],
         validators=[
             DataRequired(message="Вкажіть ім'я."),
-            Length(min=2, max=50, message="Ім'я має містити від 2 до 50 символів."),
+            Length(min=4, max=10, message="Ім'я має містити від 4 до 10 символів."),
         ],
     )
     email = EmailField(
@@ -34,7 +34,15 @@ class ContactForm(FlaskForm):
             Length(max=120, message="Email не може бути довшим за 120 символів."),
         ],
     )
-    topic = SelectField(
+    phone = StringField(
+        "Телефон",
+        filters=[_strip],
+        validators=[
+            DataRequired(message="Вкажіть номер телефону."),
+            Regexp(r"^\+380\d{9}$", message="Телефон має бути у форматі +380XXXXXXXXX (9 цифр після +380)."),
+        ],
+    )
+    subject = SelectField(
         "Тема",
         choices=CONTACT_TOPICS,
         validators=[DataRequired(message="Оберіть тему звернення.")],
@@ -44,7 +52,7 @@ class ContactForm(FlaskForm):
         filters=[_strip],
         validators=[
             DataRequired(message="Напишіть повідомлення."),
-            Length(min=10, max=1000, message="Повідомлення має містити від 10 до 1000 символів."),
+            Length(min=10, max=500, message="Повідомлення має містити від 10 до 500 символів."),
         ],
     )
     submit = SubmitField("Надіслати")
