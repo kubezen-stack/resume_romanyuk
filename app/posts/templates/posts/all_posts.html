@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">All Posts</h2>
+    <a class="btn btn-primary" href="{{ url_for('posts.add_post') }}">Create a New Post</a>
+</div>
+
+{% if posts %}
+{% for post in posts %}
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <h3 class="h5 card-title"><a href="{{ url_for('posts.detail_post', id=post.id) }}">{{ post.title }}</a></h3>
+        <p class="card-text">{{ post.content }}</p>
+        <p class="text-muted small mb-0">
+            {{ post.author }} · {{ post.posted.strftime('%d.%m.%Y %H:%M') }}
+            {% if post.category %}· <span class="badge text-bg-secondary">{{ post.category }}</span>{% endif %}
+        </p>
+        <a class="btn btn-sm btn-outline-secondary mt-2"
+            href="{{ url_for('posts.edit_post', id=post.id) }}">Edit</a>
+        <a class="btn btn-sm btn-outline-danger mt-2"
+            href="{{ url_for('posts.delete_post', id=post.id) }}">Delete</a>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info">No posts yet.</div>
+{% endif %}
+{% endblock %}

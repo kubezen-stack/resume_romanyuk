@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="card-title">{{ post.title }}</h2>
+        <p class="text-muted small">
+            {{ post.author }} · {{ post.posted.strftime('%d.%m.%Y %H:%M') }}
+            {% if post.category %}· <span class="badge text-bg-secondary">{{ post.category }}</span>{% endif %}
+        </p>
+        <p class="card-text" style="white-space: pre-line;">{{ post.content }}</p>
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('posts.edit_post', id=post.id) }}">Edit</a>
+        <a class="btn btn-outline-danger" href="{{ url_for('posts.delete_post', id=post.id) }}">Delete</a>
+        <a class="btn btn-secondary" href="{{ url_for('posts.get_posts') }}">Return to Posts</a>
+    </div>
+</div>
+{% endblock %}
