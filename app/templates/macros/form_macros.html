@@ -1,4 +1,17 @@
 {% macro render_field(field, placeholder='') %}
+{% if field.type == 'BooleanField' %}
+<div class="form-check mb-3">
+    {{ field(class="form-check-input" ~ (' is-invalid' if field.errors else ''), **kwargs) }}
+    {{ field.label(class="form-check-label") }}
+    {% if field.errors %}
+    <div class="invalid-feedback d-block">
+        {% for error in field.errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% else %}
 {% set base = 'form-select' if field.type == 'SelectField' else 'form-control' %}
 {% set css = base ~ (' is-invalid' if field.errors else '') %}
 <div class="mb-3">
@@ -16,6 +29,7 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
 {% endmacro %}
 
 {% macro render_submit(field) %}
