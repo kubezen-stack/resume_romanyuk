@@ -1,0 +1,53 @@
+.post-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.post-card .card-img-top {
+    height: 150px;
+    object-fit: cover;
+    background-color: #e9ecef;
+}
+
+.post-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.post-excerpt {
+    color: #495057;
+}
+
+.post-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.post-category {
+    background-color: #3f51b5;
+    color: #fff;
+    font-weight: 500;
+}
+
+.btn-add-post {
+    padding: 0.5rem 1.25rem;
+    border-radius: 2rem;
+    font-weight: 600;
+}
+
+.post-detail {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.post-detail-content {
+    white-space: pre-line;
+    line-height: 1.7;
+}
