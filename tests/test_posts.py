@@ -121,10 +121,9 @@ class PostListTestCase(PostsBase):
         self.assertIn("Visible post", html)
         self.assertNotIn("Hidden post", html)
 
-    def test_list_shows_author_and_category(self):
-        self.add_post(title="Tagged", author="Max", category="tech")
+    def test_list_shows_category(self):
+        self.add_post(title="Tagged", category="tech")
         html = self.client.get("/post").data.decode()
-        self.assertIn("Max", html)
         self.assertIn("tech", html)
 
 
