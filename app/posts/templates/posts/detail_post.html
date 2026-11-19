@@ -1,19 +1,23 @@
 {% extends 'base.html' %}
 
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/posts.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="card shadow-sm">
+<div class="card shadow-sm post-detail">
     <div class="card-body">
         <h2 class="card-title">{{ post.title }}</h2>
-        <p class="text-muted small">
+        <p class="post-meta">
             {{ post.author }} · {{ post.posted.strftime('%d.%m.%Y %H:%M') }}
-            {% if post.category %}· <span class="badge text-bg-secondary">{{ post.category }}</span>{% endif %}
+            {% if post.category %}· <span class="badge post-category">{{ post.category }}</span>{% endif %}
         </p>
-        <p class="card-text" style="white-space: pre-line;">{{ post.content }}</p>
+        <p class="card-text post-detail-content">{{ post.content }}</p>
     </div>
     <div class="card-footer d-flex gap-2">
         <a class="btn btn-outline-secondary" href="{{ url_for('posts.edit_post', id=post.id) }}">Edit</a>
         <a class="btn btn-outline-danger" href="{{ url_for('posts.delete_post', id=post.id) }}">Delete</a>
-        <a class="btn btn-secondary" href="{{ url_for('posts.get_posts') }}">Return to Posts</a>
+        <a class="btn btn-secondary ms-auto" href="{{ url_for('posts.get_posts') }}">Return to Posts</a>
     </div>
 </div>
 {% endblock %}

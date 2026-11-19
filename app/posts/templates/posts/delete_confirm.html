@@ -7,7 +7,7 @@
         <p>Are you sure you want to delete the post <strong>{{ post.title }}</strong>? This action cannot be undone.</p>
         <form method="post" class="d-flex gap-2">
             <button type="submit" class="btn btn-danger">Delete</button>
-            <a class="btn btn-secondary" href="{{ url_for('posts.detail_post', id=post.id) }}">Cancel</a>
+            <a class="btn btn-secondary" href="{{ url_for('posts.detail_post', id=post.id) }}">Скасувати</a>
         </form>
     </div>
 </div>
