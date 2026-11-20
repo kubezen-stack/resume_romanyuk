@@ -1,7 +1,11 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
+
+load_dotenv()
 
 from .config import config_map
 
@@ -11,7 +15,7 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
 
-def create_app(config_name="development"):
+def create_app(config_name: str = os.environ.get("FLASK_CONFIG", "development")) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_map[config_name])
 
