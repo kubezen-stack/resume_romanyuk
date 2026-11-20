@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint
+from . import models
 
 products_bp = Blueprint(
     "products",
