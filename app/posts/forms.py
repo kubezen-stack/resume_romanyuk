@@ -5,6 +5,7 @@ from wtforms import (
     BooleanField,
     DateTimeLocalField,
     SelectField,
+    SelectMultipleField,
     StringField,
     SubmitField,
     TextAreaField,
@@ -31,7 +32,8 @@ class PostForm(FlaskForm):
         "Publish Date", format="%Y-%m-%dT%H:%M", default=datetime.now
     )
     category = SelectField("Category", choices=CATEGORIES, validators=[DataRequired()])
-    author_id = SelectField("Author", coerce=int)
+    author_id = SelectField("Author", coerce=int, validators=[DataRequired()])
+    tags = SelectMultipleField("Tags", coerce=int)
     submit = SubmitField("Add Post")
 
     def __init__(self, *args, **kwargs):
