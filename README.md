@@ -11,7 +11,7 @@ resume_romanyuk/
 ├── data/
 │   └── products.json           # TinyDB-сховище товарів (створюється автоматично, у .gitignore)
 ├── app/
-│   ├── __init__.py             # create_app(), db, migrate, обробник 404
+│   ├── __init__.py             # create_app(), db, migrate, bcrypt, обробник 404
 │   ├── config.py               # Config, DevelopmentConfig, TestingConfig, ProductionConfig
 │   ├── views.py                # блюпринт main: резюме, контакти (WTF-форма)
 │   ├── forms.py                # ContactForm
@@ -27,6 +27,12 @@ resume_romanyuk/
 │       └── static/             # images/no-image.svg, uploads/ (завантажені зображення)
 └── tests/                      # unittest
 ```
+
+## Маршрути користувачів
+
+| Операція | Маршрут | Опис |
+| -------- | ------- | ---- |
+| Реєстрація | `GET/POST /users/register` | Створення користувача з хешованим паролем |
 
 ## Маршрути блюпринта products
 

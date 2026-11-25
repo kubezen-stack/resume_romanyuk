@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template
 from sqlalchemy import MetaData
+from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -21,6 +22,7 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
+bcrypt = Bcrypt()
 
 def create_app(config_name: str = os.environ.get("FLASK_CONFIG", "development")) -> Flask:
     app = Flask(__name__)
@@ -30,6 +32,7 @@ def create_app(config_name: str = os.environ.get("FLASK_CONFIG", "development"))
 
     db.init_app(app)
     migrate.init_app(app, db)
+    bcrypt.init_app(app)
 
     from .products import db as products_db
     from .posts import post_bp

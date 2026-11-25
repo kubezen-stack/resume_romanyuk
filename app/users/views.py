@@ -3,7 +3,10 @@ import re
 from functools import wraps
 
 from flask import abort, flash, make_response, redirect, render_template, request, session, url_for
+from app import bcrypt, db
 from . import users_bp
+from .forms import RegistrationForm
+from .models import User
 
 VALID_USERS = {"admin": "admin123"}
 
@@ -34,6 +37,24 @@ def admin():
     to_url = url_for("users.greetings", name="administrator", age=45, _external=True)
     print(to_url)
     return redirect(to_url)
+
+@users_bp.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=bcrypt.generate_password_hash(form.password.data).decode("utf-8"),
+        )
+        db.session.add(user)
+        db.session.commit()
+        flash("Реєстрація успішна. Тепер можете увійти.", "success")
+        return redirect(url_for("users.login"))
+
+    if request.method == "POST":
+        flash("Не вдалося зареєструватися: перевірте введені дані.", "error")
+    return render_template("users/register.html", title="Реєстрація", form=form)
 
 @users_bp.route("/login", methods=["GET", "POST"])
 def login():
