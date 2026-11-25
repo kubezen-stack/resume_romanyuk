@@ -28,6 +28,9 @@ def admin():
 
 @users_bp.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("users.profile"))
+
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(

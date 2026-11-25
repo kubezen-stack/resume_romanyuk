@@ -41,14 +41,26 @@
                     <a class="nav-link {{ 'active' if request.endpoint == 'main.contacts' else '' }}"
                         href="{{ url_for('main.contacts') }}">Контакти</a>
                 </li>
+                {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.endpoint == 'users.profile' else '' }}"
                         href="{{ url_for('users.profile') }}">Профіль</a>
                 </li>
                 <li class="nav-item">
+                    <form method="post" action="{{ url_for('users.logout') }}">
+                        <button type="submit" class="nav-link btn btn-link">Вихід</button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="nav-item">
                     <a class="nav-link {{ 'active' if request.endpoint == 'users.login' else '' }}"
                         href="{{ url_for('users.login') }}">Вхід</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'users.register' else '' }}"
+                        href="{{ url_for('users.register') }}">Реєстрація</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </div>

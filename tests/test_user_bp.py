@@ -54,6 +54,12 @@ class RegistrationTestCase(unittest.TestCase):
         data.update(overrides)
         return data
 
+    def test_registration_page_loads(self):
+        response = self.client.get("/users/register")
+        self.assertEqual(response.status_code, 200)
+        for field in (b'name="username"', b'name="email"', b'name="password"', b'name="confirm_password"'):
+            self.assertIn(field, response.data)
+
     def add_existing_user(self):
         with self.app.app_context():
             password_hash = bcrypt.generate_password_hash("ExistingPass123").decode("utf-8")
@@ -130,6 +136,12 @@ class LoginTestCase(unittest.TestCase):
             db.session.remove()
             db.drop_all()
 
+    def test_login_page_loads(self):
+        response = self.client.get("/users/login")
+        self.assertEqual(response.status_code, 200)
+        for field in (b'name="username"', b'name="password"', b'name="remember"'):
+            self.assertIn(field, response.data)
+
     def test_login_accepts_correct_password_and_sets_session(self):
         response = self.client.post(
             "/users/login",
@@ -141,6 +153,33 @@ class LoginTestCase(unittest.TestCase):
         self.assertIn("login_user".encode(), response.data)
         with self.client.session_transaction() as session_data:
             self.assertEqual(session_data["_user_id"], "1")
+
+    def test_authenticated_user_is_redirected_from_registration(self):
+        self.client.post(
+            "/users/login",
+            data={"username": "login_user", "password": "LoginPass123"},
+        )
+        response = self.client.get("/users/register")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].endswith("/users/profile"))
+
+    def test_nav_shows_login_and_registration_for_guests(self):
+        response = self.client.get("/homepage")
+        self.assertIn(b'href="/users/login"', response.data)
+        self.assertIn(b'href="/users/register"', response.data)
+        self.assertNotIn(b'href="/users/profile"', response.data)
+        self.assertNotIn(b'action="/users/logout"', response.data)
+
+    def test_nav_shows_profile_and_logout_for_authenticated_users(self):
+        self.client.post(
+            "/users/login",
+            data={"username": "login_user", "password": "LoginPass123"},
+        )
+        response = self.client.get("/homepage")
+        self.assertIn(b'href="/users/profile"', response.data)
+        self.assertIn(b'action="/users/logout"', response.data)
+        self.assertNotIn(b'href="/users/login"', response.data)
+        self.assertNotIn(b'href="/users/register"', response.data)
 
     def test_login_rejects_incorrect_password(self):
         response = self.client.post(

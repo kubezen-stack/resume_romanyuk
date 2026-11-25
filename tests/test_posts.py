@@ -3,6 +3,7 @@ from datetime import datetime
 
 from app import create_app, db
 from app.posts.models import Post
+from app.users.models import User
 
 
 class PostsBase(unittest.TestCase):
@@ -12,6 +13,14 @@ class PostsBase(unittest.TestCase):
         self.client = self.app.test_client()
         with self.app.app_context():
             db.create_all()
+            users = [
+                User(username="Max", email="max@example.com", password="test-hash"),
+                User(username="Other", email="other@example.com", password="test-hash"),
+            ]
+            db.session.add_all(users)
+            db.session.commit()
+            self.user_id = users[0].id
+            self.other_user_id = users[1].id
 
     def tearDown(self):
         with self.app.app_context():
@@ -23,7 +32,8 @@ class CreatePostTestCase(PostsBase):
 
     def valid_data(self, **extra):
         data = {"title": "Test post", "content": "Hello", "is_active": "y",
-                "publish_date": "2026-11-18T12:30", "category": "tech"}
+                "publish_date": "2026-11-18T12:30", "category": "tech",
+                "author_id": str(self.user_id)}
         data.update(extra)
         return data
 
@@ -63,15 +73,19 @@ class CreatePostTestCase(PostsBase):
         self.client.post("/post/create", data=data)
         self.assertFalse(self.all_posts()[0].is_active)
 
-    def test_author_is_user_from_session(self):
-        with self.client.session_transaction() as sess:
-            sess["user"] = "max"
-        self.client.post("/post/create", data=self.valid_data())
-        self.assertEqual(self.all_posts()[0].author, "max")
+    def test_author_is_selected_from_database(self):
+        response = self.client.post(
+            "/post/create", data=self.valid_data(author_id=str(self.other_user_id))
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.all_posts()[0].user_id, self.other_user_id)
 
-    def test_author_is_anonymous_without_session_user(self):
-        self.client.post("/post/create", data=self.valid_data())
-        self.assertEqual(self.all_posts()[0].author, "Anonymous")
+    def test_author_is_required_to_create_post(self):
+        data = self.valid_data()
+        del data["author_id"]
+        response = self.client.post("/post/create", data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.all_posts(), [])
 
     def test_invalid_data_is_not_saved(self):
         invalid = [
@@ -95,7 +109,7 @@ class PostListTestCase(PostsBase):
 
     def add_post(self, **kwargs):
         data = {"title": "Title", "content": "Content", "is_active": True,
-                "posted": datetime(2026, 1, 1, 12, 0)}
+                "posted": datetime(2026, 1, 1, 12, 0), "user_id": self.user_id}
         data.update(kwargs)
         with self.app.app_context():
             db.session.add(Post(**data))
@@ -131,7 +145,8 @@ class PostDetailTestCase(PostsBase):
 
     def add_post(self, **kwargs):
         data = {"title": "Detail title", "content": "Detail content", "is_active": True,
-                "posted": datetime(2026, 1, 1, 12, 0), "author": "Max", "category": "news"}
+                "posted": datetime(2026, 1, 1, 12, 0), "user_id": self.user_id,
+                "category": "news"}
         data.update(kwargs)
         with self.app.app_context():
             post = Post(**data)
@@ -165,7 +180,8 @@ class PostUpdateTestCase(PostsBase):
     def add_post(self):
         with self.app.app_context():
             post = Post(title="Old title", content="Old content", is_active=True,
-                        posted=datetime(2026, 3, 5, 14, 45), category="news", author="Max")
+                        posted=datetime(2026, 3, 5, 14, 45), category="news",
+                        user_id=self.user_id)
             db.session.add(post)
             db.session.commit()
             return post.id
@@ -176,7 +192,8 @@ class PostUpdateTestCase(PostsBase):
 
     def new_data(self, **extra):
         data = {"title": "New title", "content": "New content", "is_active": "y",
-                "publish_date": "2026-12-01T09:15", "category": "tech"}
+                "publish_date": "2026-12-01T09:15", "category": "tech",
+                "author_id": str(self.user_id)}
         data.update(extra)
         return data
 
@@ -201,7 +218,7 @@ class PostUpdateTestCase(PostsBase):
         self.assertEqual(post.content, "New content")
         self.assertEqual(post.category, "tech")
         self.assertEqual(post.posted, datetime(2026, 12, 1, 9, 15))
-        self.assertEqual(post.author, "Max")
+        self.assertEqual(post.user_id, self.user_id)
 
     def test_update_flash_message(self):
         post_id = self.add_post()
@@ -235,7 +252,13 @@ class PostDeleteTestCase(PostsBase):
 
     def add_post(self, title="To delete"):
         with self.app.app_context():
-            post = Post(title=title, content="Content", is_active=True, posted=datetime(2026, 1, 1))
+            post = Post(
+                title=title,
+                content="Content",
+                is_active=True,
+                posted=datetime(2026, 1, 1),
+                user_id=self.user_id,
+            )
             db.session.add(post)
             db.session.commit()
             return post.id
