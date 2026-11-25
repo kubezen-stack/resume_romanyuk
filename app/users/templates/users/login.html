@@ -7,15 +7,16 @@
             <div class="card-body">
                 <h2 class="section-title text-center">Login</h2>
                 <form method="post" action="{{ url_for('users.login') }}">
+                    {{ form.hidden_tag() }}
                     <div class="mb-3">
-                        <label for="username" class="form-label">User name</label>
-                        <input type="text" class="form-control" id="username" name="username" required autofocus>
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control", autofocus=true, required=true) }}
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", required=true) }}
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                    {{ form.submit(class="btn btn-primary w-100") }}
                 </form>
                 <p class="text-center mt-3 mb-0">
                     Ще не маєте облікового запису?

@@ -108,5 +108,105 @@ class RegistrationTestCase(unittest.TestCase):
         self.assertIn("Ця електронна пошта вже зареєстрована.".encode(), response.data)
 
 
+class LoginTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app("testing")
+        self.client = self.app.test_client()
+        with self.app.app_context():
+            db.create_all()
+            password_hash = bcrypt.generate_password_hash("LoginPass123").decode("utf-8")
+            db.session.add(
+                User(
+                    username="login_user",
+                    email="login_user@example.com",
+                    password=password_hash,
+                )
+            )
+            db.session.commit()
+
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+
+    def test_login_accepts_correct_password_and_sets_session(self):
+        response = self.client.post(
+            "/users/login",
+            data={"username": "login_user", "password": "LoginPass123"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Ви успішно увійшли.".encode(), response.data)
+        self.assertIn("login_user".encode(), response.data)
+        with self.client.session_transaction() as session_data:
+            self.assertEqual(session_data["user"], "login_user")
+
+    def test_login_rejects_incorrect_password(self):
+        response = self.client.post(
+            "/users/login",
+            data={"username": "login_user", "password": "WrongPass123"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("користувача або пароль.".encode(), response.data)
+        with self.client.session_transaction() as session_data:
+            self.assertNotIn("user", session_data)
+
+    def test_login_rejects_unknown_username(self):
+        response = self.client.post(
+            "/users/login",
+            data={"username": "unknown_user", "password": "LoginPass123"},
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("користувача або пароль.".encode(), response.data)
+
+
+class UserListTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app("testing")
+        self.client = self.app.test_client()
+        with self.app.app_context():
+            db.create_all()
+
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+
+    def test_user_list_shows_users_and_count_without_passwords(self):
+        with self.app.app_context():
+            db.session.add_all(
+                [
+                    User(
+                        username="first_user",
+                        email="first@example.com",
+                        password="first-hash",
+                    ),
+                    User(
+                        username="second_user",
+                        email="second@example.com",
+                        password="second-hash",
+                    ),
+                ]
+            )
+            db.session.commit()
+
+        response = self.client.get("/users/list")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Список користувачів (2)".encode(), response.data)
+        self.assertIn("first_user".encode(), response.data)
+        self.assertIn("first@example.com".encode(), response.data)
+        self.assertNotIn("first-hash".encode(), response.data)
+
+    def test_user_list_shows_message_when_empty(self):
+        response = self.client.get("/users/list")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Список користувачів (0)".encode(), response.data)
+        self.assertIn("Наразі немає зареєстрованих користувачів.".encode(), response.data)
+
+
 if __name__ == "__main__":
     unittest.main()

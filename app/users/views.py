@@ -1,14 +1,11 @@
-import hmac
 import re
 from functools import wraps
 
 from flask import abort, flash, make_response, redirect, render_template, request, session, url_for
-from app import bcrypt, db
 from . import users_bp
-from .forms import RegistrationForm
+from app import bcrypt, db
+from .forms import LoginForm, RegistrationForm
 from .models import User
-
-VALID_USERS = {"admin": "admin123"}
 
 COOKIE_KEY_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
 THEMES = ("light", "dark")
@@ -56,16 +53,25 @@ def register():
         flash("Не вдалося зареєструватися: перевірте введені дані.", "error")
     return render_template("users/register.html", title="Реєстрація", form=form)
 
+@users_bp.route("/list")
+def user_list():
+    users = db.session.scalars(db.select(User).order_by(User.id)).all()
+    return render_template(
+        "users/list.html",
+        title=f"Список користувачів ({len(users)})",
+        users=users,
+    )
+
 @users_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-
-        expected = VALID_USERS.get(username)
-        if expected is not None and hmac.compare_digest(expected, password):
-            session["user"] = username
-            flash(f"Ласкаво просимо, {username}! Ви успішно увійшли.", "success")
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = db.session.scalar(
+            db.select(User).where(User.username == form.username.data)
+        )
+        if user is not None and user.check_password(form.password.data):
+            session["user"] = user.username
+            flash(f"Ласкаво просимо, {user.username}! Ви успішно увійшли.", "success")
             return redirect(url_for("users.profile"))
 
         flash("Невірне ім'я користувача або пароль.", "error")
@@ -73,7 +79,7 @@ def login():
 
     if "user" in session:
         return redirect(url_for("users.profile"))
-    return render_template("users/login.html", title="Вхід")
+    return render_template("users/login.html", title="Вхід", form=form)
 
 @users_bp.route("/profile")
 @login_required

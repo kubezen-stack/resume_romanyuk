@@ -68,3 +68,15 @@ class RegistrationForm(FlaskForm):
         )
         if user_id is not None:
             raise ValidationError("Ця електронна пошта вже зареєстрована.")
+
+class LoginForm(FlaskForm):
+    username = StringField(
+        "User name",
+        filters=[_strip],
+        validators=[DataRequired(message="Вкажіть ім'я користувача.")],
+    )
+    password = PasswordField(
+        "Password",
+        validators=[DataRequired(message="Вкажіть пароль.")],
+    )
+    submit = SubmitField("Sign in")

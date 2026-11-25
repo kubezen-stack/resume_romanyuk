@@ -1,7 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app import db
+from app import bcrypt, db
 
 
 class User(db.Model):
@@ -13,3 +13,6 @@ class User(db.Model):
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     posts: Mapped[list["Post"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+    def check_password(self, password: str) -> bool:
+        return bcrypt.check_password_hash(self.password, password)
