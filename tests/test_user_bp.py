@@ -140,7 +140,7 @@ class LoginTestCase(unittest.TestCase):
         self.assertIn("Ви успішно увійшли.".encode(), response.data)
         self.assertIn("login_user".encode(), response.data)
         with self.client.session_transaction() as session_data:
-            self.assertEqual(session_data["user"], "login_user")
+            self.assertEqual(session_data["_user_id"], "1")
 
     def test_login_rejects_incorrect_password(self):
         response = self.client.post(
@@ -151,7 +151,7 @@ class LoginTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("користувача або пароль.".encode(), response.data)
         with self.client.session_transaction() as session_data:
-            self.assertNotIn("user", session_data)
+            self.assertNotIn("_user_id", session_data)
 
     def test_login_rejects_unknown_username(self):
         response = self.client.post(
@@ -161,6 +161,26 @@ class LoginTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("користувача або пароль.".encode(), response.data)
+        with self.client.session_transaction() as session_data:
+            self.assertNotIn("_user_id", session_data)
+
+    def test_logout_clears_flask_login_session(self):
+        self.client.post(
+            "/users/login",
+            data={"username": "login_user", "password": "LoginPass123"},
+        )
+        response = self.client.post("/users/logout", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Ви вийшли з системи.".encode(), response.data)
+        with self.client.session_transaction() as session_data:
+            self.assertNotIn("_user_id", session_data)
+
+    def test_protected_pages_redirect_unauthenticated_users_to_login(self):
+        for path in ("/users/profile", "/users/list"):
+            with self.subTest(path=path):
+                response = self.client.get(path, follow_redirects=True)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("Please log in to access this page.".encode(), response.data)
 
 
 class UserListTestCase(unittest.TestCase):
@@ -183,29 +203,32 @@ class UserListTestCase(unittest.TestCase):
                     User(
                         username="first_user",
                         email="first@example.com",
-                        password="first-hash",
+                        password=bcrypt.generate_password_hash("FirstPass123").decode("utf-8"),
                     ),
                     User(
                         username="second_user",
                         email="second@example.com",
-                        password="second-hash",
+                        password=bcrypt.generate_password_hash("SecondPass123").decode("utf-8"),
                     ),
                 ]
             )
             db.session.commit()
 
+        self.client.post(
+            "/users/login",
+            data={"username": "first_user", "password": "FirstPass123"},
+        )
         response = self.client.get("/users/list")
         self.assertEqual(response.status_code, 200)
         self.assertIn("Список користувачів (2)".encode(), response.data)
         self.assertIn("first_user".encode(), response.data)
         self.assertIn("first@example.com".encode(), response.data)
-        self.assertNotIn("first-hash".encode(), response.data)
+        self.assertNotIn(b"$2b$", response.data)
 
-    def test_user_list_shows_message_when_empty(self):
+    def test_user_list_requires_authentication_when_empty(self):
         response = self.client.get("/users/list")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Список користувачів (0)".encode(), response.data)
-        self.assertIn("Наразі немає зареєстрованих користувачів.".encode(), response.data)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].startswith("/users/login?"))
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from flask_login import UserMixin
 
-from app import bcrypt, db
+from app import bcrypt, db, login_manager
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -16,3 +17,11 @@ class User(db.Model):
 
     def check_password(self, password: str) -> bool:
         return bcrypt.check_password_hash(self.password, password)
+
+
+@login_manager.user_loader
+def load_user(user_id: str) -> User | None:
+    try:
+        return db.session.get(User, int(user_id))
+    except ValueError:
+        return None

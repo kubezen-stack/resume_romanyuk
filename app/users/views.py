@@ -1,9 +1,10 @@
 import re
-from functools import wraps
 
-from flask import abort, flash, make_response, redirect, render_template, request, session, url_for
-from . import users_bp
+from flask import abort, flash, make_response, redirect, render_template, request, url_for
 from app import bcrypt, db
+from flask_login import current_user, login_required, login_user, logout_user
+
+from . import users_bp
 from .forms import LoginForm, RegistrationForm
 from .models import User
 
@@ -11,16 +12,6 @@ COOKIE_KEY_RE = re.compile(r"^[A-Za-z0-9_\-]{1,64}$")
 THEMES = ("light", "dark")
 THEME_COOKIE = "theme"
 PROTECTED_COOKIES = ("session",)
-
-def login_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if "user" not in session:
-            flash("Спочатку увійдіть у систему.", "error")
-            return redirect(url_for("users.login"))
-        return view(*args, **kwargs)
-
-    return wrapped
 
 @users_bp.route("/hi/<string:name>")
 def greetings(name):
@@ -54,6 +45,7 @@ def register():
     return render_template("users/register.html", title="Реєстрація", form=form)
 
 @users_bp.route("/list")
+@login_required
 def user_list():
     users = db.session.scalars(db.select(User).order_by(User.id)).all()
     return render_template(
@@ -65,20 +57,21 @@ def user_list():
 @users_bp.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
+    if current_user.is_authenticated:
+        return redirect(url_for("users.profile"))
+
     if form.validate_on_submit():
         user = db.session.scalar(
             db.select(User).where(User.username == form.username.data)
         )
         if user is not None and user.check_password(form.password.data):
-            session["user"] = user.username
+            login_user(user, remember=form.remember.data)
             flash(f"Ласкаво просимо, {user.username}! Ви успішно увійшли.", "success")
             return redirect(url_for("users.profile"))
 
         flash("Невірне ім'я користувача або пароль.", "error")
         return redirect(url_for("users.login"))
 
-    if "user" in session:
-        return redirect(url_for("users.profile"))
     return render_template("users/login.html", title="Вхід", form=form)
 
 @users_bp.route("/profile")
@@ -90,7 +83,7 @@ def profile():
     return render_template(
         "users/profile.html",
         title="Профіль",
-        username=session["user"],
+        username=current_user.username,
         theme=theme,
         cookies=request.cookies.items(),
     )
@@ -98,7 +91,7 @@ def profile():
 
 @users_bp.route("/logout", methods=["POST"])
 def logout():
-    session.pop("user", None)
+    logout_user()
     flash("Ви вийшли з системи.", "info")
     return redirect(url_for("users.login"))
 
